@@ -1,4 +1,4 @@
-module selfish-mining
+module multi-mining
 
 go 1.16
 

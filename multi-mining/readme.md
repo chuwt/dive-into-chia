@@ -1,4 +1,4 @@
-# 针对矿池的一款selfish-mining程序
+# 针对矿池的一款multi-mining程序
 ## 声明
 ```
 Don't be evil, 技术分享

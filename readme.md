@@ -27,6 +27,9 @@ aggSig = Aggregate(sig1, sig2)
 Verify((pk1, pk2), (msg1, msg2), aggSig)
 ```
 ## plot
+### plot组成
+```官方原图```
+![](https://raw.githubusercontent.com/wiki/Chia-Network/chia-blockchain/images/plot_format.png)
 ### plotId
 ```
 plotId有两种组成方式, 官方图如下：
@@ -50,11 +53,22 @@ ps:
 ```
 localSk是每个plot文件随机生成的私钥，只存在于plot文件中，使用时，会通过解析plot的头部信息，进行获取
 ```
-### p盘
+### k
 ```
 - p盘时使用 poolPk 和 famrerPk，默认使用系统的第一个masterSk派生，同时需要指定k的大小
 - k控制文件大小，主网允许的最小k=32（101.4GIB, GIB是1024进制，GB是10进制)，文件大小的计算公式为 size = 780*k**2(k-10)
-- plot文件由7个表(table)组成，每个表有2**k的实体，每个实体有2个指针，指向前一个表，
+```
+
+### memo
+```
+此处记录了 pool_public_key(48) or puzzle_hash(32), farmer_public_key(48), local_master_sk(32)
+```
+### plotData
+```
+- plot文件由7个表(table)组成，每个表有2**k的实体，每个实体有2个指针，指向前一个表，所以每个实体
+有一个整数对(0-2**k, 0-2**k)，称为 x-values
+- pos的证明是64个x-values的集合
+
 ```
 
 ### 挖矿

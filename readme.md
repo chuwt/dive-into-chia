@@ -6,6 +6,16 @@
 sk: 私钥
 pk: 公钥，可以通过私钥获取
 ```
+
+## 一起贡献
+一起来打造中文共识文档
+[https://docs.google.com/document/d/1e94Hd03qFUCqO4LOirR28JFV7Kf7AKgxh9eu35HafCc/edit?usp=sharing](https://docs.google.com/document/d/1e94Hd03qFUCqO4LOirR28JFV7Kf7AKgxh9eu35HafCc/edit?usp=sharing)
+
+## keywords
+```
+chia-consensus
+chia consensus 中文
+```
 ## [官方共识白皮书](https://docs.google.com/document/d/1tmRIb7lgi4QfKkNaxuKOBHRmwbVlGL4f7EsBDr_5xZE/edit)
 ## 账户
 ### 概述
@@ -129,18 +139,19 @@ quality_strings
 ```
 chia的共识依赖VDF
 
-VDF（延迟验证函数）：
+VDF（延迟验证函数）
     
-    Verifiable ：
+    Verifiable 
     会生成验证，验证者不需要重新运行函数就可以验证正确性（零知识证明）
     
-    Delay ：
+    Delay 
     生成会消耗真实的某段时间
     
-    Function：
+    Function
     相同的输入，得到相同的输出，幂等
 
-sub-slot是一些VDF迭代，会动态调整难度，即迭代次数（sub-slot iterations)，使时间约为10min
+sub-slot是一系列VDF迭代的集合，他会动态调整难度，即迭代次数（sub-slot iterations)，
+使整个时间维持在10min左右, r1 到 r2 就是一个sub-slot
 
 箭头表示hash依赖，如r1的hash包含ic1的hash
 
@@ -160,8 +171,11 @@ challenge：256位hash值，是farmer的挑战hash，也是challenge chain vdf�
 ```
 ### signage point 和 infusion point
 ```
+官方图![](https://lh5.googleusercontent.com/ueZl6WRiS6JxuicpvMjLcNzY1H33-YnisVRq7-XHMm7_f6ui-v64k4AiPfhMJYIePi7Ug1SOm-uuZLq6XwX8aH7BnUWXvnKD4SHQGu6mCc17n-lZ5hXU3FKpOSJQdrzcz5y1HhBb)
+```
+```
 challenge chain 和 reward chain （infused 没有）  的每个sub-slot被分成64个VDF
-每个VDF被称为signage point。timelord 会在每个signage point时发布他自己的
+每个VDF入口被称为signage point。timelord 会在每个signage point时发布他自己的
 VDF结果和证明（proof），每个signage point之间的迭代次数称为
  signage point interval iterations, 是 sub-slot-iterations / 64
  
@@ -176,7 +190,7 @@ plotId 和 sub-slot challenge 进行filter过滤，如果满足前n位（NUMBER_
 
     pos challenge = sha256(plot filter bits)
 
-farmer通过pos挑战hash在plot中寻找quality_strings（并非全部证明），然后通过quality_strings计算
+farmer通过pos challenge 在plot中寻找quality_strings（并非全部证明），然后通过quality_strings计算
 required_iterations，最终如果required_iterations < sp_interval_iters (signage point interval_iters),
 则计算整个证明，创建unfinished block，并广播
 
@@ -191,11 +205,53 @@ infusion iterations 一般是3-4个signage point的迭代次数。farmer必须�
 
 在infusion point时，farmer的块会和infusion point VDF的输出一起作为输入，重新进行VDF。
 只有当ifusion iterations 迭代完成后，并且VDF的证明到达区块后，块才有效。
+
+上图的b1块必须包含两个VDF的证明，这样才是有效的
+1. 从r1 到 signage point
+2. 从r1 到 b1
+比如在图中红色处产生了块，但是要在图中b1处块才会有效，需要infusion iterations VDF
+当到达infusion iters后，farmer知道自己可以出块后，会获取所有证明
+
+signage points：challenge chain 和reward chain中的 sub-slot中64个间隔点，在每个
+signage point，VDF的输出会被广播到网络里，sub-slot的第一个signage point是挑战本身。
+每个区块都有一个signage point，所以区块中的证明（pos）必须满足signage point的条件
+
+required iterations：通过quality string计算的迭代次数，用来计算infusion point
+
+infusion point：farmer产出块之后，需要在3到4个signage point的地方进行验证的点，延迟有很多
+好处，比如防止孤块，自私挖矿和分叉,同时还给farmer充足的时间进行签名。
 ```
+### 多个块
+```
+官方图
+```
+![](https://lh6.googleusercontent.com/LKGsHBj3Wy-MzVZNJa841pd632aDR6MW4zhFTAcXneewBqSVPf3XuWygznLxuMp52Sm9NCpA_67AriGRjQynpxNLlvqb1hexRHpIrU8-NavK5oCQlElhmmclX-7iq0c2ygPWGKrX)
+```
+多个块可以在同一个sub-slot中，系统目前是一个sub-slot包含32个块，具体多少是通过难度控制的。
+每个块的VDF证明可以重叠，例如图上的B2的证明是从B1到sp2+B1到B2的VDF证明。B3包含B1到sp3和
+B2到B3的证明。B2不依赖于B3，但是B3依赖B2，B3的输入是B2的输出。infusion point处不需要
+签名，只需要VDF。
 
-
-
-
+```
+### 3条链
+共有3个平行的VDF链，每个功能各不相同
+1. challenge chain
+2. infused challenge chain
+3. reward chain
+#### 缘由
+```
+如果我们只用一个链来运行（奖励链），则会出现通过包含和排除区块的方式控制下一个sub-slot的挑战。
+攻击者可以通过组合不同的区块来找到符合他们的挑战（grinding acctacks）。
+```
+```
+官方图
+```
+![https://lh4.googleusercontent.com/xP4CbQ3hiAL5a5FttPIt30Q3d_05bnViXMfb4Bi1otlNHI4ivP9jGSVBIuARRy5mI9zz__RfKyw2B9kaCSvuZ9xAkeWKj1bbY4f-oa1uW-R5GilPWJApIXSfvFfYMpthkx6TsC8j](https://lh4.googleusercontent.com/xP4CbQ3hiAL5a5FttPIt30Q3d_05bnViXMfb4Bi1otlNHI4ivP9jGSVBIuARRy5mI9zz__RfKyw2B9kaCSvuZ9xAkeWKj1bbY4f-oa1uW-R5GilPWJApIXSfvFfYMpthkx6TsC8j)
+```
+上图中有几个块，B1, B2, B3, B4 ...
+challenge chain 和 reward chain 在整个sub-slot中会有64个signage point。每个块必须包含
+这两个chain的signage point的VDF和 三条chain的infusion point的VDF
+```
 
 
 

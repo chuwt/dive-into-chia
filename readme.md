@@ -6,6 +6,7 @@
 sk: 私钥
 pk: 公钥，可以通过私钥获取
 ```
+## [官方共识白皮书](https://docs.google.com/document/d/1tmRIb7lgi4QfKkNaxuKOBHRmwbVlGL4f7EsBDr_5xZE/edit)
 ## 账户
 ### 概述
 ```
@@ -122,8 +123,83 @@ quality_strings
 
 ## 共识
 ```
-chia的共识依赖vdf
+官方图如下
+```
+![](https://lh4.googleusercontent.com/I_YSKpzjcwRu9-MUIKDF_ZWIoQulJD045MiVyJV7TJwjRpn5ryjx5SrH1zLBxxdjAw3Q5UK8FyXvCraqfJ5PNt04RyXg4VD0tzdCx6-dN5QE8-8a1kab-YdLW1hD8rLACIkVWWQc)
+```
+chia的共识依赖VDF
+
+VDF（延迟验证函数）：
+    
+    Verifiable ：
+    会生成验证，验证者不需要重新运行函数就可以验证正确性（零知识证明）
+    
+    Delay ：
+    生成会消耗真实的某段时间
+    
+    Function：
+    相同的输入，得到相同的输出，幂等
+
+sub-slot是一些VDF迭代，会动态调整难度，即迭代次数（sub-slot iterations)，使时间约为10min
+
+箭头表示hash依赖，如r1的hash包含ic1的hash
+
+c1,c2,c3 表示challenge points。在c1,c2,c3时，timelord会创建挑战（256位hash）
+放入vdf，vdf会将hash迭代n次，图上是100M次，然后，timelord会将挑战和vdf结果发布给
+节点。此时的消息为end-of-slot，会在每个slot结束的时候发生。
+
+sub-slot iterations: 一个常量，即一个sub-slot的最少迭代次数
+
+challenge：256位hash值，是farmer的挑战hash，也是challenge chain vdf的输入
+
+共有3个平行的VDF链，每个功能各不相同
+1. challenge chain
+2. infused challenge chain
+3. reward chain
+
+```
+### signage point 和 infusion point
+```
+challenge chain 和 reward chain （infused 没有）  的每个sub-slot被分成64个VDF
+每个VDF被称为signage point。timelord 会在每个signage point时发布他自己的
+VDF结果和证明（proof），每个signage point之间的迭代次数称为
+ signage point interval iterations, 是 sub-slot-iterations / 64
+ 
+每个sub slot开始时的challenge 也是一个有效的 signage point。每当64个signage point
+都完成时，他们会被timelord和node广播出去，farmer收到之后，会根据 signage point 和 
+plotId 和 sub-slot challenge 进行filter过滤，如果满足前n位（NUMBER_ZERO_BITS_PLOT_FILTER配置文件参数，官方为9）
+都是0，则通过过滤。
+
+    plot filter bits = sha256(plot id + sub slot challenge + signage point)
+
+挑战的hash是通过filter计算得来的
+
+    pos challenge = sha256(plot filter bits)
+
+farmer通过pos挑战hash在plot中寻找quality_strings（并非全部证明），然后通过quality_strings计算
+required_iterations，最终如果required_iterations < sp_interval_iters (signage point interval_iters),
+则计算整个证明，创建unfinished block，并广播
+
+signage point iterations 是从 sub-slot 开始到现在的signage point的迭代次数
+
+infusion iterations 是从sub-slot 开始到可以将块加入到链中的迭代次数
+
+    infusion iterations =( signage point iterations + 3 * sp interval iterations + required iterations)  %  sub slot iterations
+    
+infusion iterations 一般是3-4个signage point的迭代次数。farmer必须在次之前提交他们的答案和
+块，如果此时在sub-slot的末尾，会进行%，然后顺延到下一个sub-slot，称为overflow
+
+在infusion point时，farmer的块会和infusion point VDF的输出一起作为输入，重新进行VDF。
+只有当ifusion iterations 迭代完成后，并且VDF的证明到达区块后，块才有效。
 ```
 
-## 区块
-## 共识
+
+
+
+
+
+
+
+
+
+

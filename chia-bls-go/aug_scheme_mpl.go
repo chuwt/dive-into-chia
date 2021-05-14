@@ -12,13 +12,7 @@ var (
 type AugSchemeMPL struct{}
 
 func (asm *AugSchemeMPL) Sign(sk PrivateKey, message []byte) []byte {
-	pk := sk.GetPublicKey()
-
-	newMessage := append(pk.ToBytes(), message...)
-
-	g2 := coreSignMpl(sk.ToBytes(), newMessage, AugSchemeDst)
-
-	return bls12381.NewG2().ToCompressed(g2)
+	return bls12381.NewG2().ToCompressed(coreSignMpl(sk, message, AugSchemeDst))
 }
 
 func (asm *AugSchemeMPL) Verify(pk PublicKey, message []byte, sig []byte) bool {
@@ -38,12 +32,14 @@ func (asm *AugSchemeMPL) AggregateVerify() {
 
 }
 
-func coreSignMpl(sk, message, dst []byte) *bls12381.PointG2 {
+func coreSignMpl(sk PrivateKey, message, dst []byte) *bls12381.PointG2 {
+	pk := sk.GetPublicKey()
+
 	g2Map := bls12381.NewG2()
 
-	q, _ := g2Map.HashToCurve(message, dst)
+	q, _ := g2Map.HashToCurve(append(pk.ToBytes(), message...), dst)
 
-	return g2Map.MulScalar(g2Map.New(), q, bls12381.NewFr().FromBytes(sk))
+	return g2Map.MulScalar(g2Map.New(), q, bls12381.NewFr().FromBytes(sk.ToBytes()))
 }
 
 func coreVerifyMpl(pk PublicKey, message []byte, sig, dst []byte) bool {

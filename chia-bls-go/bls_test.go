@@ -33,6 +33,7 @@ func TestBls(t *testing.T) {
 	t.Log("farmerPk:", hex.EncodeToString(farmerPk.ToBytes()))
 
 	t.Log("")
+
 	poolSk := masterSk.ToPoolSk()
 	poolPk := poolSk.GetPublicKey()
 	t.Log("poolSk:", hex.EncodeToString(poolSk.ToBytes()))

@@ -1,4 +1,4 @@
-module bls
+module github.com/chuwt/dive-into-chia/chia-bls-go
 
 go 1.16
 

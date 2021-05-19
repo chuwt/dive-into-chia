@@ -89,7 +89,7 @@ localSk是每个plot文件随机生成的私钥，只存在于plot文件中，�
 继续查找后面的表，最终会形成两棵树（因为一个实体有两个指针），树的最低层是表1对应的x-values,
 总共有64个x-values（2**7 <- 2**6 <- 2**5 <- 2**4 <- 2**3 <- 2**2 <- 2**1)
 - 读取的数据量很小，官方数据每次实体的读取在10ms左右，到了表1需要640ms，因为要读64次
-- 为了优化检索过程，只分别检索两棵树的1个分支（具体哪个分支取决于挑战hash），最终会得到两个x-values
+- 为了优化检索过程，只分别检索两棵树的1个分支（具体哪个分支取决于挑战hash最后5个bits&0x1f的值），最终会得到两个x-values
 - 然后计算 quality_str = hash(两个x-values), quality_str
 - 然后计算 required_iters = calculate_iterations_quality(
                             self.harvester.constants.DIFFICULTY_CONSTANT_FACTOR, // 配置文件的值

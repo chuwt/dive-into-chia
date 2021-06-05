@@ -1,3 +1,6 @@
 [submodule "chia-bls-go"]
 	path = chia-bls-go
 	url = https://github.com/chuwt/chia-bls-go
+[submodule "chia-tx"]
+	path = chia-tx
+	url = https://github.com/chuwt/chia-tx

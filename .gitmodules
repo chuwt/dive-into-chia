@@ -4,3 +4,6 @@
 [submodule "chia-tx"]
 	path = chia-tx
 	url = https://github.com/chuwt/chia-tx
+[submodule "chia-client"]
+	path = chia-client
+	url = https://github.com/chuwt/chia-client

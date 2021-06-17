@@ -1,9 +1,12 @@
 [submodule "chia-bls-go"]
 	path = chia-bls-go
 	url = https://github.com/chuwt/chia-bls-go
+	branch = main
 [submodule "chia-tx"]
 	path = chia-tx
 	url = https://github.com/chuwt/chia-tx
+	branch = main
 [submodule "chia-client"]
 	path = chia-client
 	url = https://github.com/chuwt/chia-client
+	branch = master

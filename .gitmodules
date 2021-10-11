@@ -10,3 +10,6 @@
 	path = chia-client
 	url = https://github.com/chuwt/chia-client
 	branch = master
+[submodule "chia-address-generator"]
+	path = chia-address-generator
+	url = https://github.com/chuwt/chia-address-generator
